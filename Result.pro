@@ -89,7 +89,6 @@ SOURCES += main.cpp \
     Zfun3.c \
     rnd_gen.c \
     gkls.c \
-    PBEBB3B79.cpp \
     PAC182156.cpp \
     P77F15A6D.cpp \
     P66BC8002.cpp \
@@ -153,7 +152,8 @@ SOURCES += main.cpp \
     G687361DD.cpp \
     A8BAF7ABB.cpp \
     A9D1C7CCE.cpp \
-    AAA1FF769.cpp
+    AAA1FF769.cpp \
+    P81F94AA6.cpp
 
 HEADERS += \
     graph.h \

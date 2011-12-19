@@ -113,6 +113,8 @@ public:
     __property_rw_indexed<QVADPL, int, TPOData> MQVAD_GB;
     __property_rw_indexed<LMAXPL, int, TPOData> HTMAX_GB;
     __property_rw_indexed<FUNC, int, TPOData> zp_max;
+    __property_rw_indexed<double, int, TPOData> mmax_max;
+
 private:
     QVADArray *_MQVAD;
     ArrayOfLong *_NF;
@@ -130,6 +132,7 @@ private:
     ArrayOfLMAXPL *_HTMAX_GB;
     ArrayOfQVADPL *_MQVAD_GB;
     ArrayOFFUNC *_zp_max;
+        ArrayOfDouble *_mmax_max;
 
     int MQVAD_id;
     int HTMAX_p_id;
@@ -147,6 +150,7 @@ private:
     int MQVAD_GB_id;
     int HTMAX_GB_id;
     int zp_max_id;
+        int mmax_max_id;
 
     ptrQVADArray get_MQVAD();
     ptrQVADArray set_MQVAD(const ptrQVADArray& value);
@@ -209,6 +213,10 @@ private:
     FUNC get_zp_max(const int& index);
     FUNC set_zp_max(const int& index, const FUNC& value);
 
+    ptrArrayOfDouble get_mmax_max();
+    ptrArrayOfDouble set_mmax_max(const ptrArrayOfDouble& value);
+    double get_mmax_max(const int& index);
+    double set_mmax_max(const int& index, const double& value);
 
     int myRank;
 

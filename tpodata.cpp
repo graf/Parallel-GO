@@ -37,6 +37,7 @@ TPOData::TPOData(int rank)
     HTMAX_GB.Assign(this, &TPOData::set_HTMAX_GB, &TPOData::get_HTMAX_GB, &TPOData::set_HTMAX_GB, &TPOData::get_HTMAX_GB, ArrayOfLMAXPL_LENGTH);
     MQVAD_GB.Assign(this, &TPOData::set_MQVAD_GB, &TPOData::get_MQVAD_GB, &TPOData::set_MQVAD_GB, &TPOData::get_MQVAD_GB, ArrayOfQVADPL_LENGTH);
     zp_max.Assign(this, &TPOData::set_zp_max, &TPOData::get_zp_max, &TPOData::set_zp_max, &TPOData::get_zp_max, ArrayOFFUNC_LENGTH);
+    mmax_max.Assign(this, &TPOData::set_mmax_max, &TPOData::get_mmax_max, &TPOData::set_mmax_max, &TPOData::get_mmax_max, ArrayOfDouble_LENGTH);
 }
 
 TPOData::~TPOData()
@@ -137,7 +138,7 @@ void TPOData::initMemory()
     *(Hqva = new QVAD2S) = NULL;
     *(Htmax = new LMAXS) = NULL;
     *(ILok = new int) = 0;
-    *(KlocMax = new int) = 99; //!!!!!!!!!!!!!
+    *(KlocMax = new int) = 999; //!!!!!!!!!!!!!
     *(Kobl = new double) = 10;
     *(Krep = new int) = 50;  //!!!!!!!!!!
     *(Ksum = new double) = 0;
@@ -151,7 +152,7 @@ void TPOData::initMemory()
     *(N_fun = new int) = 4; //!!!!!!!!!!!!!!!!
     *(Nbd = new int) = 1;
     *(Nloc0 = new int) = 2; //!!!!!!!!!!!
-    *(Nlok = new int) = 65536*2;
+    *(Nlok = new int) = 1048576;
     *(Nmax = new int) = 0;
     *(Nmax2 = new int) = 0;
     *(NprlTec = new int) = 0;
@@ -176,7 +177,7 @@ void TPOData::initMemory()
     *(lx = new double) = 0.032;
     *(maxhx = new double) = 0;
     *(mi = new double) = 1;
-    *(mmax = new double) = 0;
+    *(mmax = new double) = 0;//0!!!!!!!!!;
     *(r = new double) = 1.0;
     *(w0 = new double) = 0;
     *(wmax = new FUNC) = -1.0e77;
@@ -200,6 +201,7 @@ void TPOData::initMemory()
         _HTMAX_GB = (ArrayOfLMAXPL*)(new ArrayOfLMAXPL);
         _MQVAD_GB = (ArrayOfQVADPL*)(new ArrayOfQVADPL);
         _zp_max = (ArrayOFFUNC*)(new ArrayOFFUNC);
+        _mmax_max = (ArrayOfDouble*)(new ArrayOfDouble);
         _Estron = Estron;
         _NFUNC = NFUNC;
         _Nlok = Nlok;
@@ -226,6 +228,7 @@ void TPOData::initMemory()
         _HTMAX_p = NULL;
         _HTMAX_len = NULL;
         _zp_max = NULL;
+        _mmax_max = NULL;
     }
 
 }
@@ -247,6 +250,7 @@ void TPOData::initId() {
     MQVAD_len_id = 68;
     Akfun_id = 666;
     zp_max_id = 70;
+    mmax_max_id = 71;
 }
 
 void* TPOData::getDataAddr(int id)
@@ -300,6 +304,9 @@ void* TPOData::getDataAddr(int id)
         break;
     case 70:
         result = _zp_max;
+        break;
+    case 71:
+        result = _mmax_max;
         break;
     }
     return result;
@@ -356,6 +363,9 @@ int TPOData::getDataSize(int id)
         break;
     case 70:
         result = sizeof(FUNC);
+        break;
+    case 71:
+        result = sizeof(double);
         break;
     }
     return result;
@@ -548,6 +558,9 @@ MPI_Datatype TPOData::getMpiType(int id)
         break;
     case 70:
         result = MPI_USER_TYPE_ARRAYOFFUNC;
+        break;
+    case 71:
+        result = MPI_USER_TYPE_ARRAYOFDOUBLE;
         break;
     }
     return result;
@@ -899,4 +912,31 @@ ptrArrayOFFUNC TPOData::set_zp_max(const ptrArrayOFFUNC &value)
 {
     setData(zp_max_id, 0, ArrayOFFUNC_LENGTH, *(&value));
     return (FUNC *)value;
+}
+
+
+double TPOData::get_mmax_max(const int& index)
+{
+    if (_mmax_max == NULL) _mmax_max = (ArrayOfDouble*)(new ArrayOfDouble);
+    getData(mmax_max_id, index, 1, &(*_mmax_max)[index]);
+    return (*_mmax_max)[index];
+}
+
+double TPOData::set_mmax_max(const int& index, const double &value)
+{
+    setData(mmax_max_id, index, 1, &value);
+    return value;
+}
+
+ptrArrayOfDouble TPOData::get_mmax_max()
+{
+    if (_mmax_max == NULL) _mmax_max = (ArrayOfDouble*)(new ArrayOfDouble);
+    getData(mmax_max_id, 0, ArrayOfDouble_LENGTH, _mmax_max);
+    return *_mmax_max;
+}
+
+ptrArrayOfDouble TPOData::set_mmax_max(const ptrArrayOfDouble &value)
+{
+    setData(mmax_max_id, 0, ArrayOfDouble_LENGTH, *(&value));
+    return (double *)value;
 }

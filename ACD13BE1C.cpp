@@ -1,4 +1,5 @@
 #include "tpodata.h"
+#include "utils.h"
 int ACD13BE1C(TPOData *D)
 {
   int i;
@@ -9,6 +10,7 @@ int ACD13BE1C(TPOData *D)
   (*(D->iNX))=(*(*(D->Hqva))).d2z;
   (*(D->LorQ))=(*(*(D->Hqva))).Loran;
   (*(D->Diag))=(*(*(D->Hqva))).Str;
+//  printf("Process %d: ACD13BE1C Diag = %g\r\n", myProcNum, *D->Diag);
   (*(D->Hbd))=(*(*(D->Hqva))).Hbd;
   return 1;
 }
