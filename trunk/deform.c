@@ -102,7 +102,7 @@ return(1);
 
 //***************************************************************************
 int initsimp(XI X0,MATRIC *R,MPAR *BB,optfunc ff,int *Nfunc)
-{ double dlina=DSIMP,r1,r2,F;
+{ double F;
    int n1=DIMENSION+1,i,j;
    int (*func)(XI *X,FUNC *z,int *NFUNC,MPAR *Af);
    XI X;

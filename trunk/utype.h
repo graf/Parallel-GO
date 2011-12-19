@@ -18,7 +18,7 @@
 #define GKLS_FUN 68
 
 //MPI
-#define DIMENSION 7
+#define DIMENSION 8
 #define TOTAL_PROCS_NUMBER 2
 #define SLOW_FACTOR 0
 #define MAXF 60000 //600
@@ -88,6 +88,7 @@ extern MPI_Datatype MPI_USER_TYPE_LMAXPL;
 
 #define MPI_USER_TYPE_XI_ONE_ELEMENT MPI_DOUBLE
 #define MPI_USER_TYPE_FUNC MPI_DOUBLE
+#define MPI_USER_TYPE_ARRAYOFDOUBLE MPI_DOUBLE
 #define MPI_USER_TYPE_ARRAYOFLONG MPI_LONG
 #define MPI_USER_TYPE_ARRAYOFFUNC MPI_USER_TYPE_FUNC
 #define MPI_USER_TYPE_QVADARRAY MPI_USER_TYPE_QVAD2
@@ -129,5 +130,9 @@ typedef LMAXPL* ptrArrayOfLMAXPL;
 #define ArrayOFFUNC_LENGTH TOTAL_PROCS_NUMBER
 typedef FUNC ArrayOFFUNC[ArrayOFFUNC_LENGTH];
 typedef FUNC* ptrArrayOFFUNC;
+
+#define ArrayOfDouble_LENGTH TOTAL_PROCS_NUMBER
+typedef double ArrayOfDouble[ArrayOfDouble_LENGTH];
+typedef double* ptrArrayOfDouble;
 
 #endif

@@ -8,32 +8,6 @@
 extern "C" int addLM(LMAXS *Hxs, XI *xf, FUNC *z, double *Eloc, int *Nmax, int *Kmax);
 extern "C" int addQVM(QVAD2S *simps, int *Nsimp,double *d2z,double *Str, double *Ksum,XI *x0,double *z,double *hx, FUNC *DelS,int *Lor,int *Hbd);
 
-int addQVM(QVAD2S *simps, int Nsimp, double d2z,double Str, double Ksum,XI x0,double z,double hx, FUNC DelS, int Lor,int Hbd) {
-    QVAD2 *simp, *H, *HP;
-        XI X0;
-        double R,L;
-        int i;
-
-    H=*simps;
-    if ((simp = (QVAD2S)malloc(sizeof(QVAD2)))  == NULL) {
-        printf("墠⠥   ࠧ饭   QVAD2\n");
-        exit(8);
-    }
-    simp->Nsimp = Nsimp;
-    simp->d2z   = d2z;
-    simp->Str   = Str;
-    for(i=0;i<DIMENSION;i++)
-        (simp->x0)[i]=x0[i];
-    simp->z   = z;
-    simp->hx   = hx;
-    simp->DelS   = DelS;
-    simp->Ksum  = Ksum;
-    simp->Loran= Lor;
-    simp->Hbd= Hbd;
-    simp->next = H;
-    *simps = simp;
-}
-
 int AE0DB6BEB(TPOData *D)
 {
     /*Waiting for process and collect data*/
@@ -57,6 +31,7 @@ int AE0DB6BEB(TPOData *D)
         ptrArrayOfQVADPL MQVADS = D->MQVAD_GB;
         ptrArrayOfLMAXPL HTMAXS = D->HTMAX_GB;
         ptrArrayOFFUNC zp_max = D->zp_max;
+        ptrArrayOfDouble mmax_max = D->mmax_max;
         for (int i = 1; i < TOTAL_PROCS_NUMBER; i++) {
             if ((*D->PRLp).MQVAD[i] == NULL)
                 continue;
@@ -67,7 +42,6 @@ int AE0DB6BEB(TPOData *D)
                 for (int j = 0; j < MQVAD_len-1; j++) {
                     QVAD2 q = MQVADS[i].list[j];
                     addQVM(&((*D->PRLp).MQVAD[i]), &(q.Nsimp),&(q.d2z), &(q.Str), &(q.Ksum), &(q.x0), &(q.z), &(q.hx), &(q.DelS), &(q.Loran), &(q.Hbd));
-//                    addQVM(&((*D->PRLp).MQVAD[i]), q.Nsimp,q.d2z, q.Str, q.Ksum, q.x0, q.z, q.hx, q.DelS, q.Loran, q.Hbd);
                 }
             } else
                 (*D->PRLp).MQVAD[i] = NULL;
@@ -81,10 +55,14 @@ int AE0DB6BEB(TPOData *D)
             }
 
             //максимум функции
-            if (zp_max[i] > *D->zp1) {
+            if (zp_max[i] > *D->zp1)
                 *D->zp1 = zp_max[i];
-                printf("New maximum %g\r\n", *D->zp1);
-            }
+//            printf("New maximum %g from process %d\r\n", *D->zp1, m);
+
+            //максимум функции
+            if (mmax_max[i] > *D->mmax)
+                *D->mmax = mmax_max[i];
+//            printf("New mmax %g from process %d\r\n", *D->mmax, m);
         }
 
         D->totalFuncCalls += maxPRL;
@@ -117,6 +95,7 @@ int AE0DB6BEB(TPOData *D)
 
         //МАксимум функции
         D->zp_max[myProcNum] = *D->zp1;
+        D->mmax_max[myProcNum] = *D->mmax;
     }
     return 1;
 }
