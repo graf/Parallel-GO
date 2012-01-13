@@ -2,9 +2,17 @@
 #include "utils.h"
 
 extern "C" int addQVM(QVAD2S *simps, int *Nsimp,double *d2z,double *Str, double *Ksum,XI *x0,double *z,double *hx, FUNC *DelS,int *Lor,int *Hbd);
+
+#ifdef PROFILING
+double AA72B0A89_time = 0;
+#endif
+
 int AA72B0A89(TPOData *D)
 {
     /*Prepare data*/
+#ifdef PROFILING
+    AA72B0A89_time -= MPI_Wtime();
+#endif
     if (myProcNum == 0) {
         //Закинем данны в общую память
         D->mmax_p = *D->mmax;
@@ -37,5 +45,9 @@ int AA72B0A89(TPOData *D)
         *D->zp1 = D->zp1_p;
         *D->Akfun = Mpar2_2_Mpar(D->Akfun_p);
     }
+
+#ifdef PROFILING
+    AA72B0A89_time += MPI_Wtime();
+#endif
     return 1;
 }

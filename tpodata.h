@@ -28,6 +28,7 @@ public:
     QVAD2S *Hq2;
     QVAD2S *Hqva;
     LMAXS *HXMAX;
+    LMAXS *Hend;
     LMAXS *Htmax;
     XIF *Simpmax;
     XI *X;
@@ -37,6 +38,10 @@ public:
 
     int totalFuncCalls;
     double totalDataOperationsTime;
+    bool maxFound;
+
+    LMAXS *localMaxs;
+    LMAXS *localMaxsHend;
 
     int *Flif;
     int *GKLtip;
@@ -54,11 +59,14 @@ public:
     int *Nlok;
     int *Nmax;
     int *Nmax2;
+    int *Nmax3;
     int *NprlTec;
     int *Nsimp;
     int *Ntern;
     int *Reset;
     int *iNX;
+    int *Reg;
+    int *Reg1;
     int *j1;
     int *j2;
     int *j6;
@@ -69,16 +77,13 @@ public:
     double *Diag;
     double *Eloc;
     double *Esimp;
-    double *Estron;
     double *Kobl;
     double *Ksum;
     double *Kz;
-    double *Lip;
     double *Str;
     double *d2z;
     double *hx;
     double *lx;
-    double *maxhx;
     double *mi;
     double *mmax;
     double *r;
@@ -102,11 +107,6 @@ public:
     __property_rw_indexed<long, int, TPOData> NF;
     __property_rw_indexed<long, int, TPOData> MQVAD_len;
     __property_rw_indexed<long, int, TPOData> HTMAX_len;
-    __property_rw<int, TPOData> KlocMax_p;
-    __property_rw<double, TPOData> Estron_p;
-    __property_rw<double, TPOData> lx_p;
-    __property_rw<int, TPOData> NFUNC_p;
-    __property_rw<int, TPOData> Nlok_p;
     __property_rw<double, TPOData> mmax_p;
     __property_rw<FUNC, TPOData> zp1_p;
     __property_rw<MPAR2, TPOData> Akfun_p;
@@ -120,11 +120,6 @@ private:
     ArrayOfLong *_NF;
     ArrayOfLong *_MQVAD_len;
     ArrayOfLong *_HTMAX_len;
-    double *_Estron;
-    int *_KlocMax;
-    int *_NFUNC;
-    int *_Nlok;
-    double *_lx;
     double *_mmax;
     FUNC *_zp1;
     MPAR2 *_Akfun;
@@ -132,17 +127,12 @@ private:
     ArrayOfLMAXPL *_HTMAX_GB;
     ArrayOfQVADPL *_MQVAD_GB;
     ArrayOFFUNC *_zp_max;
-        ArrayOfDouble *_mmax_max;
+    ArrayOfDouble *_mmax_max;
 
     int MQVAD_id;
     int HTMAX_p_id;
     int NF_id;
     int MQVAD_len_id;
-    int Estron_id;
-    int KlocMax_id;
-    int NFUNC_id;
-    int Nlok_id;
-    int lx_id;
     int mmax_id;
     int zp1_id;
     int Akfun_id;
@@ -150,7 +140,7 @@ private:
     int MQVAD_GB_id;
     int HTMAX_GB_id;
     int zp_max_id;
-        int mmax_max_id;
+    int mmax_max_id;
 
     ptrQVADArray get_MQVAD();
     ptrQVADArray set_MQVAD(const ptrQVADArray& value);
@@ -165,20 +155,6 @@ private:
     ptrArrayOfLong set_MQVAD_len(const ptrArrayOfLong& value);
     long get_MQVAD_len(const int& index);
     long set_MQVAD_len(const int& index, const long& value);
-    double get_Estron();
-    double set_Estron(const double& value);
-
-    double get_lx();
-    double set_lx(const double& value);
-
-    int get_KlocMax();
-    int set_KlocMax(const int& value);
-
-    int get_NFUNC();
-    int set_NFUNC(const int& value);
-
-    int get_Nlok();
-    int set_Nlok(const int& value);
 
     double get_mmax();
     double set_mmax(const double& value);

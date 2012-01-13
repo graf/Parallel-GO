@@ -2,7 +2,7 @@
 
 int BkvPar(LMAXS *HXMAX, QVAD2S *Hqva, double *Estron, double *lx, int *KlocMax, double *mmmax, int *NFUNC, MPAR *Akfun, FUNC *zp1, int *Nloc0)
 {
-    TPOData D(0);
+    TPOData D(myProcNum+1);
     D.Akfun = Akfun;
     D.HXMAX = HXMAX;
     D.Hqva = Hqva;

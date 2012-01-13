@@ -10,7 +10,5 @@ int P9D30AA17(TPOData *D)
 
     int result = S31020C03(_Z, _X0, _NmaxF, _lx, _Kob);
 
-
-
     return result;
 }

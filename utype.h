@@ -1,6 +1,8 @@
 #ifndef UTYPE_H
 #define UTYPE_H
+
 #define PARALLEL
+#define PROFILING
 
 #ifdef PARALLEL
 #include <mpi.h>
@@ -9,27 +11,28 @@
 
 //Часто включаемые файлы
 #include <stdio.h>
-//#include <conio.h>
 #include <strings.h>
 #include <memory.h>
 #include <math.h>
 
 #define GKLS_TYPE 3
-#define GKLS_FUN 68
-
-//MPI
-#define DIMENSION 8
-#define TOTAL_PROCS_NUMBER 2
+#define GKLS_FUN 1
+#define KLOCMAX 9999
+#define NLOC 0
+#define LX 0.30
+#define ELOC 0.1
 #define SLOW_FACTOR 0
+
+#define DIMENSION 7
+#define TOTAL_PROCS_NUMBER 2
+
 #define MAXF 60000 //600
 #define GRAN 6619
 #define DSIMP  0.005
 #define NGL_ 20
 
 //Пользовательские типы
-typedef FILE typFILE;
 typedef double FUNC;
-typedef typFILE* PFILE;
 typedef double XI[DIMENSION];
 typedef double XIF[MAXF][2*DIMENSION];
 typedef int(*ZFUNC)(double *,double *,FUNC *);
@@ -55,6 +58,7 @@ typedef struct LM {
     FUNC fLmax;
     XI  xLm;
     struct LM *next;
+    struct LM *prev;
 } LMAX;
 
 typedef struct LQV {
@@ -106,6 +110,8 @@ typedef struct {
     int length;
 } QVADPL;
 
+//Массив для хранения списков квадратов в глобальной памяти
+//PL = parallel list
 #define ArrayOfQVADPL_LENGTH TOTAL_PROCS_NUMBER
 typedef QVADPL ArrayOfQVADPL[ArrayOfQVADPL_LENGTH];
 typedef QVADPL* ptrArrayOfQVADPL;
@@ -114,6 +120,7 @@ typedef QVADPL* ptrArrayOfQVADPL;
 typedef long ArrayOfLong[ArrayOfLong_LENGTH];
 typedef long* ptrArrayOfLong;
 
+//Массив для хранения списка квадратов в каждом процессе
 #define ArrayOfLMAX_LENGTH MAX_LIST_ARRAY_LENGTH
 typedef LMAX ArrayOfLMAX[ArrayOfLMAX_LENGTH];
 typedef LMAX* ptrArrayOfLMAX;
