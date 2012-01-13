@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <time.h>
+#include "utils.h"
+#include "profiling.h"
 
 extern int f_count;
 
@@ -28,17 +30,18 @@ void register_MPI_USER_TYPE_QVAD2() {
 }
 
 void register_MPI_USER_TYPE_LMAX() {
-    int          len[7] = { DIMENSION, 1, 1, 1, DIMENSION, 1, 1};
-    MPI_Aint     pos[7] = { offsetof(LMAX,xf0),
+    int          len[8] = { DIMENSION, 1, 1, 1, DIMENSION, 1, 1, 1};
+    MPI_Aint     pos[8] = { offsetof(LMAX,xf0),
                             offsetof(LMAX,fmax),
                             offsetof(LMAX,Npri),
                             offsetof(LMAX,fLmax),
                             offsetof(LMAX,xLm),
                             offsetof(LMAX,next),
+                            offsetof(LMAX,prev),
                             sizeof(LMAX) };
-    MPI_Datatype typ[7] = { MPI_USER_TYPE_XI_ONE_ELEMENT, MPI_USER_TYPE_FUNC, MPI_INT, MPI_USER_TYPE_FUNC, MPI_USER_TYPE_XI_ONE_ELEMENT, MPI_INT, MPI_UB };
+    MPI_Datatype typ[8] = { MPI_USER_TYPE_XI_ONE_ELEMENT, MPI_USER_TYPE_FUNC, MPI_INT, MPI_USER_TYPE_FUNC, MPI_USER_TYPE_XI_ONE_ELEMENT, MPI_INT, MPI_INT, MPI_UB };
 
-    MPI_Type_struct( 7, len, pos, typ, &MPI_USER_TYPE_LMAX);
+    MPI_Type_struct( 8, len, pos, typ, &MPI_USER_TYPE_LMAX);
     MPI_Type_commit( &MPI_USER_TYPE_LMAX );
 }
 
@@ -87,9 +90,7 @@ int A76101524(TPOData *D);
 
 int main(int argc, char *argv[])
 {
-    int provided_level_thread_support;
-    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided_level_thread_support);
-    printf("provided_level_thread_support=%d\r\n", provided_level_thread_support);
+    MPI_Init(&argc, &argv);
 
     //Для общения с менеждером памяти
     int          len[4] = { 1, 1, 1, 1 };
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
 
     int counter = 0;
     for (int GKLtip = GKLS_TYPE; GKLtip <= GKLS_TYPE; GKLtip++)
-        for (int N_fun = GKLS_FUN; N_fun <= GKLS_FUN; N_fun++)  {
+        for (int N_fun = GKLS_FUN; N_fun <= GKLS_FUN; N_fun+=10)  {
             double start = MPI_Wtime();
             counter++;
 
@@ -153,8 +154,11 @@ int main(int argc, char *argv[])
                 work_time += MPI_Wtime();
                 GCD1DC2A0(&D);
                 //Мы больше не нуждаемся в параллельных процессорах
-                for (int i = 1; i < totalProc; i++)
+                for (int i = 1; i < totalProc; i++) {
                     MPI_Send(NULL, 0, MPI_INT, i+1, MPI_TAG_TERMINATE, MPI_COMM_WORLD);
+                }
+                //выключаем менеджер памяти
+                MPI_Send(NULL, 0, MPI_INT, 0, MPI_TAG_TERMINATE, MPI_COMM_WORLD);
                 work_time -= MPI_Wtime();
                 printf("total func calls = %d\r\n", D.totalFuncCalls);
             }
@@ -202,23 +206,10 @@ int main(int argc, char *argv[])
                 }
             }
 
-            //выключаем менеджер памяти
-            if (myProcNum > -1)
-                MPI_Send(NULL, 0, MPI_INT, 0, MPI_TAG_TERMINATE, MPI_COMM_WORLD);
-            MPI_Barrier(MPI_COMM_WORLD);
-
             double finish = MPI_Wtime();
             if (myProcNum == -1) {
-                printf("TOTAL_PROCS_NUMBER; %d\r\n", TOTAL_PROCS_NUMBER);
-                printf("DIMENSION; %d\r\n", DIMENSION);
-                printf("SLOW_FACTOR; %d\r\n", SLOW_FACTOR);
                 printf("GKLS_func; %d\r\n", N_fun);
                 printf("GKLS_type; %d\r\n", GKLtip);
-                printf("KlocMax; %d\r\n", *D.KlocMax);
-                printf("Nlok; %d\r\n", *D.Nlok);
-                printf("Nloc0; %d\r\n", *D.Nloc0);
-                printf("Estron; %g\r\n", *D.Estron);
-                printf("lx; %g\r\n", *D.lx);
                 printf("Process; Total time; Work time; Data trans time; Func calls;\r\n");
             }
             MPI_Barrier(MPI_COMM_WORLD);
@@ -230,9 +221,18 @@ int main(int argc, char *argv[])
             //Дальше необходимо выполнить все операции одновременно всеми процессами.
             MPI_Barrier(MPI_COMM_WORLD);
 
-            if (myProcNum == -1) {
+            if (myProcNum == -1)
                 printf("==========================================================================;\r\n\r\n\r\n\r\n");
-            }
+
+#ifdef PROFILING
+            if (myProcNum == -1)
+                printf("===============================PROFILING==================================;\r\n");
+            MPI_Barrier(MPI_COMM_WORLD);
+            printf_profile();
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (myProcNum == -1)
+                printf("==========================================================================;\r\n\r\n\r\n\r\n");
+#endif
 
             avgWorkTime += fabs(work_time);
             avgFuncCalls += f_count;
@@ -241,13 +241,19 @@ int main(int argc, char *argv[])
 
     if (myProcNum == -1) {
         printf("==============================SUMMARY (AVG)===============================\r\n");
+        printf("TOTAL_PROCS_NUMBER; %d\r\n", TOTAL_PROCS_NUMBER);
+        printf("DIMENSION; %d\r\n", DIMENSION);
+        printf("SLOW_FACTOR; %d\r\n", SLOW_FACTOR);
+        printf("KlocMax; %d\r\n", KLOCMAX);
+        printf("Nlok; %d\r\n", NLOC);
+        printf("Nloc0; %d\r\n", TOTAL_PROCS_NUMBER-1);
+        printf("lx; %g\r\n", LX);
+        printf("Eloc; %g\r\n", ELOC);
         printf("Process; Work time; Data trans time; Func calls;\r\n");
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     printf("%d; %g; %g; %g;\r\n", myProcNum, avgWorkTime/1.0/counter, avgDataTransTime/1.0/counter, avgFuncCalls/1.0/counter);
-
-    MPI_Barrier(MPI_COMM_WORLD);
     
     //Освобождаем типы
     MPI_Type_free(&memoryPacketDatatype);
@@ -257,6 +263,8 @@ int main(int argc, char *argv[])
     MPI_Type_free(&MPI_USER_TYPE_QVAD2);  
     MPI_Type_free(&MPI_USER_TYPE_LMAX);
     
+    
+
     MPI_Finalize();
     
     return 0;

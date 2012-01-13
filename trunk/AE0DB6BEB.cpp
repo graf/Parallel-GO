@@ -5,15 +5,21 @@
 #include <stdio.h>
 #include <string.h>
 
-extern "C" int addLM(LMAXS *Hxs, XI *xf, FUNC *z, double *Eloc, int *Nmax, int *Kmax);
+extern "C" int addLM2(LMAXS *Hxs, XI *xf, FUNC *z, double *Eloc, int *Nmax, int *Kmax,LMAXS *Hend);
 extern "C" int addQVM(QVAD2S *simps, int *Nsimp,double *d2z,double *Str, double *Ksum,XI *x0,double *z,double *hx, FUNC *DelS,int *Lor,int *Hbd);
+
+#ifdef PROFILING
+double AE0DB6BEB_time = 0;
+#endif
 
 int AE0DB6BEB(TPOData *D)
 {
     /*Waiting for process and collect data*/
+#ifdef PROFILING
+    AE0DB6BEB_time -= MPI_Wtime();
+#endif
     if (myProcNum == 0) {
         int maxPRL = (*D->PRLp).NF[0];
-        int maxPRLP = 0;
         for (int i = 1; i < TOTAL_PROCS_NUMBER; i++) {
             if ((*D->PRLp).MQVAD[i] != NULL) {
                 MPI_Recv(NULL, 0, MPI_INT, i+1, MPI_TAG_COMPLETED, MPI_COMM_WORLD, &status);
@@ -21,65 +27,42 @@ int AE0DB6BEB(TPOData *D)
                 //Получены данные от процессора, нужно разобрать эти данные
                 (*D->PRLp).NF[i] = D->NF[i];
 
-                if (maxPRL < (*D->PRLp).NF[i]) {
+                if (maxPRL < (*D->PRLp).NF[i])
                     maxPRL = (*D->PRLp).NF[i];
-                    maxPRLP = i;
-                }
             }
         }
 
-        ptrArrayOfQVADPL MQVADS = D->MQVAD_GB;
+
         ptrArrayOfLMAXPL HTMAXS = D->HTMAX_GB;
         ptrArrayOFFUNC zp_max = D->zp_max;
         ptrArrayOfDouble mmax_max = D->mmax_max;
+        double collect_time = -MPI_Wtime();
         for (int i = 1; i < TOTAL_PROCS_NUMBER; i++) {
             if ((*D->PRLp).MQVAD[i] == NULL)
                 continue;
 
-            //Разбор списка квадратов
-            const long MQVAD_len = MQVADS[i].length;
-            if (MQVAD_len > 0) {
-                for (int j = 0; j < MQVAD_len-1; j++) {
-                    QVAD2 q = MQVADS[i].list[j];
-                    addQVM(&((*D->PRLp).MQVAD[i]), &(q.Nsimp),&(q.d2z), &(q.Str), &(q.Ksum), &(q.x0), &(q.z), &(q.hx), &(q.DelS), &(q.Loran), &(q.Hbd));
-                }
-            } else
-                (*D->PRLp).MQVAD[i] = NULL;
             //Разбор локальных областей притяжения
             const long HTMAX_len = HTMAXS[i].length;
             if (HTMAX_len > 0) {
                 for (int j = 0; j < HTMAX_len-1; j++) {
                     LMAX p = HTMAXS[i].list[j];
-                    addLM(D->HXMAX, &(p.xf0), &(p.fmax), D->Eloc, D->Nmax2, D->KlocMax);
+                    addLM2(D->HXMAX, &(p.xf0), &(p.fmax), D->Eloc, D->Nmax2, D->KlocMax, D->Hend);
                 }
             }
 
             //максимум функции
             if (zp_max[i] > *D->zp1)
                 *D->zp1 = zp_max[i];
-//            printf("New maximum %g from process %d\r\n", *D->zp1, m);
 
             //максимум функции
             if (mmax_max[i] > *D->mmax)
                 *D->mmax = mmax_max[i];
-//            printf("New mmax %g from process %d\r\n", *D->mmax, m);
         }
+        collect_time += MPI_Wtime();
+        printf("collect data about %g sec\r\n", collect_time);
 
         D->totalFuncCalls += maxPRL;
     } else {
-        //Сбор списка квадратов
-        QVADPL QVAD_result;
-        QVAD_result.length = 0;
-        QVAD2S head = (*D->PRLp).MQVAD[myProcNum];
-        while (head != NULL && QVAD_result.length < QVADArray_LENGTH) {
-            QVAD_result.list[QVAD_result.length++] = (*(head));
-            head = head->next;
-        }
-        if (QVAD_result.length >= QVADArray_LENGTH)
-            printf("Process %d: ### WARN ###: MQVAD_len OVER LENGTH %d\r\n", myProcNum, QVAD_result.length);
-        (*D->PRLp).MQVAD[myProcNum] = NULL;
-        D->MQVAD_GB[myProcNum] = QVAD_result;
-
         //Сбор локальных точек притяжения
         LMAXPL HTMAX_result;
         HTMAX_result.length = 0;
@@ -91,11 +74,18 @@ int AE0DB6BEB(TPOData *D)
         if (HTMAX_result.length >= ArrayOfLMAX_LENGTH)
             printf("Process %d: ### WARN ###: HTMAX_len OVER LENGTH %d\r\n", myProcNum, HTMAX_result.length);
         (*D->HXMAX) = NULL;
+        (*D->Hend) = NULL;
         D->HTMAX_GB[myProcNum] = HTMAX_result;
 
         //МАксимум функции
         D->zp_max[myProcNum] = *D->zp1;
         D->mmax_max[myProcNum] = *D->mmax;
     }
+
+    printf("Process %d: func cals at GO %d\r\n", myProcNum, (*D->PRLp).NF[myProcNum]);
+#ifdef PROFILING
+    AE0DB6BEB_time += MPI_Wtime();
+#endif
+
     return 1;
 }

@@ -10,7 +10,7 @@ int A3BE6A80A(TPOData *D)
     if (M > (*(D->mmax))) {
         (*(D->mmax)) = M;
         (*(D->Flif))=1;
-        printf("New mmax %g from process %d\r\n", *D->mmax, myProcNum);
+//        printf("New mmax %g from process %d\r\n", *D->mmax, myProcNum);
     }
     (*(D->mi)) = (*(D->mmax)) * (*(D->r));
     (*(D->d2z)) = (*(D->iNX));

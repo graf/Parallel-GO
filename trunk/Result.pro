@@ -24,7 +24,6 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    SACD3CE29.cpp \
     deform.c \
     S5A6D0DC4.cpp \
     delLM.c \
@@ -57,7 +56,6 @@ SOURCES += main.cpp \
     S1441B5B5.cpp \
     addQVM.c \
     S3BA8B77.cpp \
-    addLM.c \
     P312BFCC3.cpp \
     P282E6F54.cpp \
     graph.cpp \
@@ -73,7 +71,6 @@ SOURCES += main.cpp \
     GA29BF28F.cpp \
     A37CA1EE6.cpp \
     AE0C44442.cpp \
-    A9E1CDE26.cpp \
     P5519A254.cpp \
     S6628910D.cpp \
     Brazb.c \
@@ -90,37 +87,29 @@ SOURCES += main.cpp \
     rnd_gen.c \
     gkls.c \
     PAC182156.cpp \
-    P77F15A6D.cpp \
-    P66BC8002.cpp \
     P27B846B.cpp \
     P9D30AA17.cpp \
     G6D2FF987.cpp \
     Rez.c \
-    BkvPar.cpp \
     A3C94B0E7.cpp \
     P11577D41.cpp \
     A483E1434.cpp \
     A68D78CB2.cpp \
-    A8CEA2460.cpp \
     ACA6447B9.cpp \
     A8E248E71.cpp \
     A3FBDF9D1.cpp \
     SEFE952D2.cpp \
-    G3C3FB3E5.cpp \
-    AE5EA5591.cpp \
     P36AADBB9.cpp \
     S31020C03.cpp \
     PF6088A06.cpp \
     G7BF72D52.cpp \
     BPfiLM.c \
     ACD13BE1C.cpp \
-    A275CD97B.cpp \
     AFB859466.cpp \
     S6F7D238B.cpp \
     A63059F62.cpp \
     A6E9FF91F.cpp \
     AE226CBAF.cpp \
-    S93CDA455.cpp \
     GEDF5070C.cpp \
     A87B58126.cpp \
     AA1BE37B2.cpp \
@@ -153,7 +142,25 @@ SOURCES += main.cpp \
     A8BAF7ABB.cpp \
     A9D1C7CCE.cpp \
     AAA1FF769.cpp \
-    P81F94AA6.cpp
+    P81F94AA6.cpp \
+    A3300B5FE.cpp \
+    P32265593.cpp \
+    P151D361D.cpp \
+    P2477925C.cpp \
+    A19ACD2E9.cpp \
+    G2595891.cpp \
+    A4C81F17A.cpp \
+    AC8A7352.cpp \
+    A3B5EB18E.cpp \
+    SC27C3EB4.cpp \
+    SB7A02AC0.cpp \
+    SF8A061BB.cpp \
+    AC2E97CF3.cpp \
+    A823252EF.cpp \
+    addLM2.c \
+    BkvParU.cpp \
+    sumsimp.c \
+    profiling.cpp
 
 HEADERS += \
     graph.h \
@@ -164,7 +171,8 @@ HEADERS += \
     gkls.h \
     rnd_gen.h \
     stype.h \
-    utils.h
+    utils.h \
+    profiling.h
 
 
 

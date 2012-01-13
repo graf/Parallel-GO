@@ -1,6 +1,11 @@
 #include "utils.h"
 #include <sys/file.h>
 
+#ifdef PROFILING
+#include "profiling.h"
+#endif
+
+
 MPAR2 Mpar_2_Mpar2(const MPAR &src) {
     MPAR2 result;
     result.GKLS_dim = src.GKLS_dim;
@@ -52,7 +57,7 @@ void printf_LMAX(LMAX l)
 
 void printf_QVAD2S(QVAD2S q)
 {
-    char buff[4096];
+    char *buff = new char[4194304]; //4Mb
     int offset = sprintf(buff, "Process %d: {\r\n", myProcNum);
     int MQVAD_len=0;
     QVAD2S head = q;
@@ -67,11 +72,12 @@ void printf_QVAD2S(QVAD2S q)
     }
     sprintf(buff+offset, "} length=%d", MQVAD_len);
     printf("%s\r\n", buff);
+    delete[] buff;
 }
 
 void printf_LMAXS(LMAXS l)
 {
-    char buff[4096];
+    char *buff = new char[4194304]; //4Mb
     int offset = sprintf(buff, "Process %d: {\r\n", myProcNum);
     int LMAX_len=0;
     LMAXS head = l;
@@ -88,6 +94,7 @@ void printf_LMAXS(LMAXS l)
     }
     sprintf(buff+offset, "} length=%d", LMAX_len);
     printf("%s\r\n", buff);
+    delete[] buff;
 }
 
 void printf_QVADPL(QVADPL qvadpl)
@@ -121,3 +128,5 @@ void printf_LMAXPL(LMAXPL lmaxpl)
     sprintf(buff+offset, "}");
     printf("%s\r\n", buff);
 }
+
+

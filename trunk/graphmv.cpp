@@ -5,16 +5,16 @@
 
 void enter(const char* name)
 {
-    //FILE *f = fopen("stacktrace.txt", "a+");
-    printf("Process %d: Enter %s\r\n", myProcNum, name);
-    //fclose(f);
+    FILE *f = fopen("stacktrace.txt", "a+");
+    fprintf(f, "Process %d: Enter %s\r\n", myProcNum, name);
+    fclose(f);
 }
 
 void leave(const char* name)
 {
-    //FILE *f = fopen("stacktrace.txt", "a+");
-    printf("Process %d: Leave %s....OK!\r\n", myProcNum, name);
-    //fclose(f);
+    FILE *f = fopen("stacktrace.txt", "a+");
+    fprintf(f, "Process %d: Leave %s....OK!\r\n", myProcNum, name);
+    fclose(f);
 }
 
 int GraphMV(TPOData *D, int jroot, int , DefinePredicate *ListPred, DefineTop *ListTop, DefineGraph *ListGraf)

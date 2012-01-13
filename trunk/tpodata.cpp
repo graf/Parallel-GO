@@ -20,15 +20,11 @@ TPOData::TPOData(int rank)
     initId();
     totalDataOperationsTime = 0;
     totalFuncCalls = 0;
+    maxFound = false;
 
     MQVAD.Assign(this, &TPOData::set_MQVAD, &TPOData::get_MQVAD, &TPOData::set_MQVAD, &TPOData::get_MQVAD, QVADArray_LENGTH);
     NF.Assign(this, &TPOData::set_NF, &TPOData::get_NF, &TPOData::set_NF, &TPOData::get_NF, ArrayOfLong_LENGTH);
     MQVAD_len.Assign(this, &TPOData::set_MQVAD_len, &TPOData::get_MQVAD_len, &TPOData::set_MQVAD_len, &TPOData::get_MQVAD_len, ArrayOfLong_LENGTH);
-    Estron_p.Assign(this, &TPOData::set_Estron, &TPOData::get_Estron);
-    NFUNC_p.Assign(this, &TPOData::set_NFUNC, &TPOData::get_NFUNC);
-    Nlok_p.Assign(this, &TPOData::set_Nlok, &TPOData::get_Nlok);
-    lx_p.Assign(this, &TPOData::set_lx, &TPOData::get_lx);
-    KlocMax_p.Assign(this, &TPOData::set_KlocMax, &TPOData::get_KlocMax);
     mmax_p.Assign(this, &TPOData::set_mmax, &TPOData::get_mmax);
     zp1_p.Assign(this, &TPOData::set_zp1, &TPOData::get_zp1);
     Akfun_p.Assign(this, &TPOData::set_Akfun, &TPOData::get_Akfun);
@@ -46,10 +42,10 @@ TPOData::~TPOData()
     delete Diag;
     delete Eloc;
     delete Esimp;
-    delete Estron;
     delete Flif;
     delete GKLtip;
     delete HXMAX;
+    delete Hend;
     delete Hbd;
     delete Hq2;
     delete Hqva;
@@ -57,10 +53,11 @@ TPOData::~TPOData()
     delete ILok;
     delete KlocMax;
     delete Kobl;
+    delete Reg;
+    delete Reg1;
     delete Krep;
     delete Ksum;
     delete Kz;
-    delete Lip;
     delete Lor;
     delete LorQ;
     delete MaxF;
@@ -72,6 +69,7 @@ TPOData::~TPOData()
     delete Nlok;
     delete Nmax;
     delete Nmax2;
+    delete Nmax3;
     delete NprlTec;
     delete Nsimp;
     delete Nstep;
@@ -92,7 +90,6 @@ TPOData::~TPOData()
     delete j6;
     delete kDi;
     delete lx;
-    delete maxhx;
     delete mi;
     delete mmax;
     delete r;
@@ -107,43 +104,59 @@ TPOData::~TPOData()
     delete zmin;
     delete zp1;
     delete zp2;
+    delete localMaxs;
+    delete localMaxsHend;
 
-    //delete _MQVAD_len;
-    //delete _MQVAD;
-    //delete _NF;
-    //delete _Estron;
-    //delete _NFUNC;
-    //delete _Nlok;
-    //delete _lx;
-    //delete _mmax;
-    //delete _zp1;
-    //delete _KlocMax;
-    //delete _Akfun;
-    //delete _HTMAX_p;
-    //delete _HTMAX_len;
+    if (_MQVAD_len)
+        delete _MQVAD_len;
+    if (_MQVAD)
+        delete _MQVAD;
+    if (_NF)
+        delete _NF;
+    if (_mmax)
+        delete _mmax;
+    if (_zp1)
+        delete _zp1;
+    if (_Akfun)
+        delete _Akfun;
+    if (_HTMAX_p)
+        delete _HTMAX_p;
+    if (_HTMAX_len)
+        delete _HTMAX_len;
+    if (_HTMAX_GB)
+        delete _HTMAX_GB;
+    if (_MQVAD_GB)
+        delete _MQVAD_GB;
+    if (_zp_max)
+        delete _zp_max;
+    if (_mmax_max)
+        delete _mmax_max;
 }
 
 void TPOData::initMemory()
 {
     *(Akfun = new MPAR);
     *(Diag = new double) = 0;
-    *(Eloc = new double) = 0.33;
+    *(Eloc = new double) = ELOC; //!!!!!!!!!!!!!
     *(Esimp = new double) = 1.0e-5;
-    *(Estron = new double) = 0.032;
     *(Flif = new int) = 0;
     *(GKLtip = new int) = 3;
     *(HXMAX = new LMAXS) = NULL;
+    *(localMaxs = new LMAXS) = NULL;
     *(Hbd = new int) = 0;
-    *(Hq2 = new QVAD2S);
+    *(Hq2 = new QVAD2S) = NULL;
     *(Hqva = new QVAD2S) = NULL;
     *(Htmax = new LMAXS) = NULL;
+    *(Hend = new LMAXS) = NULL;
+    *(localMaxsHend = new LMAXS) = NULL;
     *(ILok = new int) = 0;
-    *(KlocMax = new int) = 999; //!!!!!!!!!!!!!
+    *(Reg = new int) = 0;
+    *(Reg1 = new int) = 1;
+    *(KlocMax = new int) = KLOCMAX; //!!!!!!!!!!!!!
     *(Kobl = new double) = 10;
     *(Krep = new int) = 50;  //!!!!!!!!!!
     *(Ksum = new double) = 0;
     *(Kz = new double);
-    *(Lip = new double) = 170;
     *(Lor = new int) = 0;
     *(LorQ = new int) = 0;
     *(MaxF = new long) = 0;
@@ -151,10 +164,11 @@ void TPOData::initMemory()
     *(NFUNC = new int) = 24; //21
     *(N_fun = new int) = 4; //!!!!!!!!!!!!!!!!
     *(Nbd = new int) = 1;
-    *(Nloc0 = new int) = 2; //!!!!!!!!!!!
-    *(Nlok = new int) = 1048576;
+    *(Nloc0 = new int) = TOTAL_PROCS_NUMBER-1; //!!!!!!!!!!!
+    *(Nlok = new int) = NLOC;//INT_MAX/1024; ??????????????????
     *(Nmax = new int) = 0;
     *(Nmax2 = new int) = 0;
+    *(Nmax3 = new int) = 0;
     *(NprlTec = new int) = 0;
     *(Nsimp = new int) = 1;
     *(Nstep = new long) = 0;
@@ -174,10 +188,9 @@ void TPOData::initMemory()
     *(j2 = new int) = 0;
     *(j6 = new int) = 0;
     *(kDi = new int) = 1;
-    *(lx = new double) = 0.032;
-    *(maxhx = new double) = 0;
+    *(lx = new double) = LX;//0.032;
     *(mi = new double) = 1;
-    *(mmax = new double) = 0;//0!!!!!!!!!;
+    *(mmax = new double) = 21.49661;//0;
     *(r = new double) = 1.0;
     *(w0 = new double) = 0;
     *(wmax = new FUNC) = -1.0e77;
@@ -202,28 +215,18 @@ void TPOData::initMemory()
         _MQVAD_GB = (ArrayOfQVADPL*)(new ArrayOfQVADPL);
         _zp_max = (ArrayOFFUNC*)(new ArrayOFFUNC);
         _mmax_max = (ArrayOfDouble*)(new ArrayOfDouble);
-        _Estron = Estron;
-        _NFUNC = NFUNC;
-        _Nlok = Nlok;
-        _lx = lx;
-        _mmax = mmax;
-        _zp1 = zp1;
-        _KlocMax = KlocMax;
+        *(_mmax = new double) = *mmax;
+        *(_zp1 = new FUNC) = *_zp1;
         _Akfun = new MPAR2;
     }
     else {
         _MQVAD = NULL;
         _NF = NULL;
         _MQVAD_len = NULL;
-        _Estron = NULL;
-        _NFUNC = NULL;
         _HTMAX_GB = NULL;
         _MQVAD_GB = NULL;
-        _Nlok = NULL;
-        _lx = NULL;
         _mmax = NULL;
         _zp1 = NULL;
-        _KlocMax = NULL;
         _Akfun = NULL;
         _HTMAX_p = NULL;
         _HTMAX_len = NULL;
@@ -234,16 +237,11 @@ void TPOData::initMemory()
 }
 
 void TPOData::initId() {
-    Estron_id = 4;
-    KlocMax_id = 13;
     MQVAD_id = 21;
     HTMAX_p_id = 7;
     HTMAX_GB_id = 8;
     NF_id = 24;
     MQVAD_GB_id = 42;
-    NFUNC_id = 25;
-    Nlok_id = 29;
-    lx_id = 51;
     mmax_id = 54;
     zp1_id = 66;
     HTMAX_len_id = 67;
@@ -257,17 +255,11 @@ void* TPOData::getDataAddr(int id)
 {
     void* result = NULL;
     switch (id) {
-    case 4:
-        result = _Estron;
-        break;
     case 7:
         result = _HTMAX_p;
         break;
     case 8:
         result = _HTMAX_GB;
-        break;
-    case 13:
-        result = _KlocMax;
         break;
     case 21:
         result = _MQVAD;
@@ -275,17 +267,8 @@ void* TPOData::getDataAddr(int id)
     case 24:
         result = _NF;
         break;
-    case 25:
-        result = _NFUNC;
-        break;
-    case 29:
-        result = _Nlok;
-        break;
     case 42:
         result = _MQVAD_GB;
-        break;
-    case 51:
-        result = _lx;
         break;
     case 54:
         result = _mmax;
@@ -316,9 +299,6 @@ int TPOData::getDataSize(int id)
 {
     int result = 0;
     switch (id) {
-    case 4:
-        result = sizeof(double);
-        break;
     case 7:
         result = sizeof(LMAX);
         break;
@@ -383,9 +363,6 @@ MPI_Datatype TPOData::getMpiType(int id)
         result = MPI_DOUBLE;
         break;
     case 3:
-        result = MPI_DOUBLE;
-        break;
-    case 4:
         result = MPI_DOUBLE;
         break;
     case 5:
@@ -702,72 +679,6 @@ ptrArrayOfLong TPOData::set_MQVAD_len(const ptrArrayOfLong &value)
 {
     setData(MQVAD_len_id, 0, ArrayOfLong_LENGTH, *(&value));
     return (long *)value;
-}
-
-
-double TPOData::get_Estron()
-{
-    if (_Estron == NULL) *(_Estron = new double) = 0.016;
-    getData(Estron_id, 0, 1, _Estron);
-    return *_Estron;
-}
-
-double TPOData::set_Estron(const double &value)
-{
-    setData(Estron_id, 0, 1, &value);
-    return value;
-}
-
-int TPOData::get_KlocMax()
-{
-    if (_KlocMax == NULL) *(_KlocMax = new int) = 10;
-    getData(KlocMax_id, 0, 1, _KlocMax);
-    return *_KlocMax;
-}
-
-int TPOData::set_KlocMax(const int &value)
-{
-    setData(KlocMax_id, 0, 1, &value);
-    return value;
-}
-
-int TPOData::get_NFUNC()
-{
-    if (_NFUNC == NULL) *(_NFUNC = new int) = 21;
-    getData(NFUNC_id, 0, 1, _NFUNC);
-    return *_NFUNC;
-}
-
-int TPOData::set_NFUNC(const int &value)
-{
-    setData(NFUNC_id, 0, 1, &value);
-    return value;
-}
-
-int TPOData::get_Nlok()
-{
-    if (_Nlok == NULL) *(_Nlok = new int) = 2;
-    getData(Nlok_id, 0, 1, _Nlok);
-    return *_Nlok;
-}
-
-int TPOData::set_Nlok(const int &value)
-{
-    setData(Nlok_id, 0, 1, &value);
-    return value;
-}
-
-double TPOData::get_lx()
-{
-    if (_lx == NULL) *(_lx = new double) = 0.0078;
-    getData(lx_id, 0, 1, _lx);
-    return *_lx;
-}
-
-double TPOData::set_lx(const double &value)
-{
-    setData(lx_id, 0, 1, &value);
-    return value;
 }
 
 double TPOData::get_mmax()
